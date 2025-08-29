@@ -167,7 +167,7 @@ def get_git_repository_info():
 def get_torch_info():
     info = dict()
     try :
-        import torch
+        import torch # type: ignore
     except ImportError:
         info['erro'] = 'Não foi possível importar a biblioteca torch'
     else:
