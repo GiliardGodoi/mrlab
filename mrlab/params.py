@@ -1,21 +1,45 @@
 import hashlib
 import json
+import re
 import yaml
+from collections.abc import Iterable
 from dataclasses import (
     asdict,
     dataclass,
-    field
+    field,
+    fields
 )
+from datetime import datetime
 from pathlib import Path
+from typing import List
+
+def options(values):
+    if not isinstance(values, Iterable):
+        raise TypeError(f'Values options must e a iterable: got {type(values)}')
+    return field(default_factory=lambda: values)
 
 @dataclass
-class BaseArguments:
+class BaseParams:
 
-    _hash_id : str = field(init=False, default=None, repr=False)
+    _hash_id : str = field(default=None, repr=False)
+    _timestamp: str = field(default_factory=lambda: datetime.now().isoformat(), repr=False)
+
+    def _check_attrs_names(self, **kwargs):
+
+        valid_fields = {f.name for f in fields(self)}
+        invalid_args = set(kwargs) - valid_fields
+        if invalid_args:
+            raise TypeError(
+                f"Invalid argument(s) for {self.__class__.__name__}:"
+                f"{invalid_args}"
+                f"\n\tIt is not allowed to instantiate an object with an argument not defined in parameter class."
+            )
 
     def update(self, **kwargs):
         """Cria uma nova instância com valores atualizados"""
+        self._check_attrs_names(**kwargs)
         base_dict = asdict(self)
+        del base_dict['_hash_id']
         base_dict.update(kwargs)
         return self.__class__(**base_dict)
 
@@ -116,3 +140,15 @@ class BaseArguments:
 
     def dir_images(self, ensure_exists=True):
         return self.get_default_folder('images', ensure_exists)
+
+@dataclass
+class MyParameters(BaseParams):
+
+    lr: float = 0.0
+    batch_size: int = 0
+    optimizer_name: str = 'Nostorov'
+    penalization_weights: List[float] = options([0.1, 0.3, 0.5])
+    logging_steps: str ='steps'
+
+    def template_folder_name(self):
+        return "outputs/{hash_id}"

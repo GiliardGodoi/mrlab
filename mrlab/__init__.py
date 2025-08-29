@@ -1,1 +1,1 @@
-from .mrlab import BaseArguments
+from .params import BaseParams
