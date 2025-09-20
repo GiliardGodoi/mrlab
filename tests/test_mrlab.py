@@ -1,8 +1,9 @@
 import pandas as pd
 import numpy as np
 import pytest
-import os
-from dataclasses import dataclass
+import yaml
+from typing import List
+from dataclasses import dataclass, field
 from mrlab.search import GridSearch
 from mrlab.params import BaseParams
 
@@ -16,6 +17,15 @@ class Params(BaseParams):
 
     def template_folder_name(self):
         return "{outputdir}/{hash_id}"
+
+@dataclass
+class ParamsWithList(BaseParams):
+    lr: float = None
+    batch_size:int = None
+    weights: List[float] = field(default_factory=list)
+
+    def template_folder_name(self):
+        return "{hash_id}"
 
 @pytest.fixture
 def search_space():
@@ -94,3 +104,18 @@ def test_grid_search_look_up(search_space, tmp_path):
     grid = GridSearch(search_space, initial=initial)
     for params in grid:
         assert simulate_training(params)
+
+
+def test_params_with_lists(tmp_path):
+    content = '''
+    lr : 0.1
+    batch_size: 68
+    weights :
+        - 2.0
+        - 5.0
+    '''
+    config = yaml.safe_load(content)
+    params = ParamsWithList(**config)
+
+    assert isinstance(params.weights, list)
+    assert params.weights == [2.0, 5.0]
