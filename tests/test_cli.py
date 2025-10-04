@@ -18,13 +18,14 @@ class Params(BaseParams):
         return "{outputdir}/{hash_id}"
 
 @pytest.fixture
-def config_file():
-    return """
+def config_file(tmp_path):
+    return f"""
 lr: !!float 5e-5
 optimizer: AdamW
 batch_size: 32
 logging_steps: steps
 weights: [1.0, 2.0]
+outputdir: {tmp_path}
 """
 
 def test_config_file_reading(config_file):

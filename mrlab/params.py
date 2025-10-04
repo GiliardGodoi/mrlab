@@ -21,7 +21,7 @@ def options(values):
 @dataclass
 class BaseParams:
 
-    _hash_id : str = field(default=None, repr=False)
+    _hash_id : str = field(default=None, init=False, repr=False, hash=False)
     _timestamp: str = field(default_factory=lambda: datetime.now().isoformat(), repr=False)
 
     def _check_attrs_names(self, **kwargs):
@@ -66,7 +66,7 @@ class BaseParams:
     # Conversão
     # -------------------------
     def to_dict(self):
-        return asdict(self)
+        return {f.name : getattr(self, f.name) for f in fields(self) if f.hash != False }
 
     def to_yaml(self):
         filepath = self.get_default_folder() / 'arguments.yaml'
@@ -85,8 +85,7 @@ class BaseParams:
     # Hash dos argumentos
     # -------------------------
     def make_hash_id(self):
-        args_dict = asdict(self)
-        del args_dict['_hash_id']
+        args_dict = self.to_dict()
         args_txt = json.dumps(args_dict, sort_keys=True)
         digest = hashlib.md5(args_txt.encode()).hexdigest()
         return digest
@@ -115,7 +114,8 @@ class BaseParams:
             folder = self.get_base_folder_name_from_arguments()
         else:
             folder = self.get_base_folder_name_from_arguments() / key
-        if ensure_exists:
+
+        if not folder.exists() and ensure_exists:
             folder.mkdir(parents=True, exist_ok=True)
         return folder
 
@@ -144,6 +144,7 @@ class BaseParams:
 @dataclass
 class MyParameters(BaseParams):
 
+    experiment = '0001'
     lr: float = 0.0
     batch_size: int = 0
     optimizer_name: str = 'Nostorov'
@@ -151,4 +152,4 @@ class MyParameters(BaseParams):
     logging_steps: str ='steps'
 
     def template_folder_name(self):
-        return "outputs/{hash_id}"
+        return "{experiment}/{hash_id}"

@@ -58,6 +58,7 @@ def test_to_yaml(tmp_path):
     args = Params.from_yaml(f)
     assert args.hash_id == params.hash_id
     assert args._hash_id == args.hash_id
+    assert args._timestamp == params._timestamp
     assert args.lr == params.lr
     assert args.batch_size == params.batch_size
     assert args.optimizer == params.optimizer
@@ -97,7 +98,7 @@ def test_grid_search_with_parameters(search_space, tmp_path):
         f = params.to_yaml()
         assert f.exists()
         args = Params.from_yaml(f)
-        assert args and (args.lr == params.lr)
+        assert args and (args.hash_id == params.hash_id)
 
 def test_grid_search_look_up(search_space, tmp_path):
     initial = Params(outputdir=str(tmp_path))
