@@ -66,7 +66,7 @@ class BaseParams:
     # Conversão
     # -------------------------
     def to_dict(self):
-        return {f.name : getattr(self, f.name) for f in fields(self) if f.hash != False }
+        return { f.name : getattr(self, f.name) for f in fields(self) if f.hash != False }
 
     def to_yaml(self):
         filepath = self.get_default_folder() / 'arguments.yaml'
