@@ -1,6 +1,7 @@
 import hashlib
 import json
 import re
+import uuid
 import yaml
 from collections.abc import Iterable
 from dataclasses import (
@@ -11,6 +12,7 @@ from dataclasses import (
 )
 from datetime import datetime
 from pathlib import Path
+from uuid import uuid4
 from typing import List
 
 def options(values):
@@ -75,10 +77,22 @@ class BaseParams:
             f.write(txt)
         return filepath
 
+    def _json_serialization_defaults(self, obj):
+        if isinstance(obj, datetime):
+            return obj.isoformat
+        if isinstance(obj, uuid.UUID):
+            return str(obj)
+        else:
+            return obj
+
     def to_json(self):
         filepath = self.get_default_folder() / 'arguments.json'
         with open(filepath, 'w') as f:
-            json.dump(self.to_dict(), f, sort_keys=True)
+            json.dump(
+                self.to_dict(),
+                f,
+                sort_keys=True,
+            )
         return filepath
 
     # -------------------------
